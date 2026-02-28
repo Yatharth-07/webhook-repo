@@ -3,27 +3,118 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Action-Repo Live Activity</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <title>Action-Repo Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
-    <div class="app-container">
-        <header class="app-header">
-            <div class="pulse-indicator"></div>
-            <h1>Live GitHub Actions</h1>
-            <p>action-repo » webhook-repo</p>
-        </header>
-        
-        <main class="events-feed">
-            <div id="events-container" class="events-container">
-                <!-- Events will be dynamically injected here -->
-                <div class="empty-state">
-                    <p>Listening for webhooks...</p>
+    <div class="app-layout">
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="logo">
+                    <svg class="h-8 w-8 text-indigo-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                    </svg>
+                    <span>StaX Webhooks</span>
+                </div>
+            </div>
+            
+            <nav class="sidebar-nav">
+                <a href="#" class="nav-item active">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg>
+                    Dashboard
+                </a>
+                <a href="#" class="nav-item disabled">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"></path></svg>
+                    Repositories
+                </a>
+                <a href="#" class="nav-item disabled">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                    Settings
+                </a>
+            </nav>
+
+            <div class="sidebar-footer">
+                <div class="connection-status">
+                    <div class="status-indicator">
+                        <span class="ping"></span>
+                        <span class="dot"></span>
+                    </div>
+                    <span>System Operational</span>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content Area -->
+        <main class="main-content">
+            
+            <header class="top-header">
+                <div class="header-titles">
+                    <h1>Live Event Stream</h1>
+                    <p>Monitoring incoming webhooks from <span class="repo-badge">action-repo</span></p>
+                </div>
+                
+                <div class="header-actions">
+                    <button class="btn btn-secondary" id="refresh-btn">
+                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+                        Refresh Stream
+                    </button>
+                    <button class="btn btn-primary" id="docs-btn">
+                        Documentation
+                    </button>
+                </div>
+            </header>
+
+            <div class="dashboard-controls">
+                <div class="filter-group">
+                    <button class="filter-btn active" data-filter="all">All Events</button>
+                    <button class="filter-btn" data-filter="PUSH">Pushes</button>
+                    <button class="filter-btn" data-filter="PULL_REQUEST">Pull Requests</button>
+                    <button class="filter-btn" data-filter="MERGE">Merges</button>
+                </div>
+                
+                <div class="search-box">
+                    <svg class="search-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                    <input type="text" id="search-input" placeholder="Search events, authors, branches...">
+                </div>
+            </div>
+            
+            <div class="events-feed">
+                <div id="events-container" class="events-container">
+                    
+                    <!-- Pre-rendered Skeleton Loaders -->
+                    <div class="skeleton-state">
+                        <div class="skeleton-card">
+                            <div class="skeleton-avatar"></div>
+                            <div class="skeleton-content">
+                                <div class="skeleton-line title-line"></div>
+                                <div class="skeleton-line meta-line"></div>
+                            </div>
+                        </div>
+                        <div class="skeleton-card" style="opacity: 0.7;">
+                            <div class="skeleton-avatar"></div>
+                            <div class="skeleton-content">
+                                <div class="skeleton-line title-line"></div>
+                                <div class="skeleton-line meta-line"></div>
+                            </div>
+                        </div>
+                        <div class="skeleton-card" style="opacity: 0.4;">
+                            <div class="skeleton-avatar"></div>
+                            <div class="skeleton-content">
+                                <div class="skeleton-line title-line"></div>
+                                <div class="skeleton-line meta-line"></div>
+                            </div>
+                        </div>
+                    </div>
+                    
                 </div>
             </div>
         </main>
     </div>
+
+    <!-- Modals, Toasts -->
+    <div id="toast-container" class="toast-container"></div>
 
     <script src="{{ url_for('static', filename='script.js') }}"></script>
 </body>
