@@ -9,7 +9,7 @@ app = Flask(__name__)
 CORS(app)
 
 # MongoDB Configuration
-MONGO_URI = os.getenv("MONGO_URI", "mongodb://localhost:27017/")
+MONGO_URI = "mongodb+srv://yatharthsrivastava994:Yath%40994@cluster0.bv0tltb.mongodb.net/?appName=Cluster0"
 client = MongoClient(MONGO_URI)
 db = client.github_webhooks
 events_collection = db.events
