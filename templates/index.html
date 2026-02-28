@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Action-Repo Live Activity</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="app-container">
+        <header class="app-header">
+            <div class="pulse-indicator"></div>
+            <h1>Live GitHub Actions</h1>
+            <p>action-repo » webhook-repo</p>
+        </header>
+        
+        <main class="events-feed">
+            <div id="events-container" class="events-container">
+                <!-- Events will be dynamically injected here -->
+                <div class="empty-state">
+                    <p>Listening for webhooks...</p>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>
