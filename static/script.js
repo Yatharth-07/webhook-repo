@@ -4,7 +4,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const searchInput = document.getElementById('search-input');
     const refreshBtn = document.getElementById('refresh-btn');
     const toastContainer = document.getElementById('toast-container');
-    
+
     let allEvents = [];
     let currentFilter = 'all';
     let searchQuery = '';
@@ -19,9 +19,10 @@ document.addEventListener('DOMContentLoaded', () => {
     // Event Listeners for Filters
     filterBtns.forEach(btn => {
         btn.addEventListener('click', (e) => {
+            const targetBtn = e.currentTarget; // Ensure we get the button, not a nested span/svg
             filterBtns.forEach(b => b.classList.remove('active'));
-            e.target.classList.add('active');
-            currentFilter = e.target.dataset.filter;
+            targetBtn.classList.add('active');
+            currentFilter = targetBtn.dataset.filter;
             renderEvents();
         });
     });
@@ -34,26 +35,37 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Event Listener for Refresh
     refreshBtn.addEventListener('click', () => {
-        // Add loading spin to icon
         const icon = refreshBtn.querySelector('svg');
-        icon.classList.add('animate-spin');
-        icon.style.animation = 'spin 1s linear infinite';
-        
+        if (icon) {
+            icon.classList.add('animate-spin');
+            icon.style.animation = 'spin 1s linear infinite';
+        }
+
         fetchEvents(false).then(() => {
             setTimeout(() => {
-                icon.style.animation = 'none';
-                icon.classList.remove('animate-spin');
+                if (icon) {
+                    icon.style.animation = 'none';
+                    icon.classList.remove('animate-spin');
+                }
             }, 500);
         });
     });
+
+    // Event Listener for Documentation
+    const docsBtn = document.getElementById('docs-btn');
+    if (docsBtn) {
+        docsBtn.addEventListener('click', () => {
+            window.open('https://github.com/Yatharth-07/webhook-repo/blob/main/README.md', '_blank');
+        });
+    }
 
     async function fetchEvents(isInitial = false) {
         try {
             const response = await fetch('/api/events');
             if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-            
+
             const fetchedEvents = await response.json();
-            
+
             // Check for new events to trigger toasts (if not initial load)
             if (!isInitial && fetchedEvents.length > 0) {
                 const latestEvent = fetchedEvents[0];
@@ -106,11 +118,11 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         eventsContainer.innerHTML = '';
-        
+
         filteredEvents.forEach((event, index) => {
             const card = document.createElement('div');
             card.className = `event-card ${event.action}`;
-            
+
             // Stagger animation delay slightly for initial load effect
             if (isInitial) {
                 card.style.animationDelay = `${index * 0.05}s`;
@@ -119,9 +131,9 @@ document.addEventListener('DOMContentLoaded', () => {
             const iconSvg = getIconSvg(event.action);
             const { titleHtml, descriptionHtml } = getFormattedEventStrings(event);
             const displayId = event.request_id ? event.request_id.substring(0, 7) : 'N/A';
-            const initials = event.author ? event.author.substring(0,2).toUpperCase() : '??';
+            const initials = event.author ? event.author.substring(0, 2).toUpperCase() : '??';
             const timeAgo = getRelativeTime(event.timestamp);
-            
+
             card.innerHTML = `
                 <div class="event-avatar-container">
                     <div class="event-avatar">${initials}</div>
@@ -142,7 +154,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     </div>
                 </div>
             `;
-            
+
             eventsContainer.appendChild(card);
         });
     }
@@ -155,7 +167,7 @@ document.addEventListener('DOMContentLoaded', () => {
             <span>${message}</span>
         `;
         toastContainer.appendChild(toast);
-        
+
         // Remove after 4 seconds
         setTimeout(() => {
             toast.style.animation = 'toastOut 0.3s forwards';
@@ -184,34 +196,34 @@ document.addEventListener('DOMContentLoaded', () => {
             case 'PUSH':
                 titleHtml = `<strong>${event.author}</strong> pushed to <code>${event.to_branch}</code>`;
                 break;
-                
+
             case 'PULL_REQUEST':
                 titleHtml = `<strong>${event.author}</strong> opened a pull request`;
                 descriptionHtml = `Wants to merge code from <code>${event.from_branch}</code> into <code>${event.to_branch}</code>`;
                 break;
-                
+
             case 'MERGE':
                 titleHtml = `<strong>${event.author}</strong> merged a pull request`;
                 descriptionHtml = `Merged <code>${event.from_branch}</code> into <code>${event.to_branch}</code>.`;
                 break;
-                
+
             default:
                 titleHtml = `<strong>${event.author}</strong> generated a ${event.action} event`;
         }
-        
+
         return { titleHtml, descriptionHtml };
     }
 
     function getRelativeTime(isoString) {
         if (!isoString) return 'Unknown Time';
-        
+
         const date = new Date(isoString);
         const now = new Date();
         const seconds = Math.floor((now - date) / 1000);
-        
+
         // Handle slight future drift or exact same second
         if (seconds <= 5) return 'Just now';
-        
+
         const minutes = Math.floor(seconds / 60);
         const hours = Math.floor(minutes / 60);
         const days = Math.floor(hours / 24);
